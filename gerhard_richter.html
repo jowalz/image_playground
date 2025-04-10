@@ -1,0 +1,108 @@
+!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #000;
+            max-width: 100%;
+            height: auto;
+        }
+        .form-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <label for="numSquares">Number of squares:</label>
+        <input type="number" id="numSquares" value="32" min="1">
+    </br>
+        <label for="startColorPicker">Start Color:</label>
+        <input type="color" id="startColorPicker" value="#4B0082">
+
+        <label for="endColorPicker">End Color:</label>
+        <input type="color" id="endColorPicker" value="#FFB6C1">
+
+        <button id="generateButton">Generate</button>
+        <button id="downloadButton">Download</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="myCanvas"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const numSquaresInput = document.getElementById("numSquares");
+            const generateButton = document.getElementById("generateButton");
+            const downloadButton = document.getElementById("downloadButton");
+            const canvas = document.getElementById("myCanvas");
+            const ctx = canvas.getContext("2d");
+            const startColorPicker = document.getElementById("startColorPicker");
+            const endColorPicker = document.getElementById("endColorPicker");
+
+            function getRandomColorBetween(startColor, endColor) {
+                const startRGB = hexToRgb(startColor);
+                const endRGB = hexToRgb(endColor);
+                const r = Math.floor(Math.random() * (endRGB.r - startRGB.r + 1) + startRGB.r);
+                const g = Math.floor(Math.random() * (endRGB.g - startRGB.g + 1) + startRGB.g);
+                const b = Math.floor(Math.random() * (endRGB.b - startRGB.b + 1) + startRGB.b);
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+
+            function hexToRgb(hex) {
+                hex = hex.replace('#', '');
+                const r = parseInt(hex.substring(0, 2), 16);
+                const g = parseInt(hex.substring(2, 4), 16);
+                const b = parseInt(hex.substring(4, 6), 16);
+                return { r, g, b };
+            }
+
+            function drawSquares(numSquares, startColor, endColor) {
+                canvas.width = 1920;
+                canvas.height = 1920;
+                const squareSize = canvas.width / numSquares;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (let i = 0; i < numSquares; i++) {
+                    for (let j = 0; j < numSquares; j++) {
+                        const x = i * squareSize;
+                        const y = j * squareSize;
+                        const randomColor = getRandomColorBetween(startColor, endColor);
+                        ctx.fillStyle = randomColor;
+                        ctx.fillRect(x, y, squareSize, squareSize);
+                    }
+                }
+            }
+
+            function downloadImage() {
+                canvas.toBlob((blob) => {
+                    saveAs(blob, 'color_squares.png');
+                });
+            }
+
+            drawSquares(32, "#4B0082", "#FFB6C1");
+
+            generateButton.addEventListener("click", () => {
+                const numSquares = parseInt(numSquaresInput.value) || 10;
+                const startColor = startColorPicker.value;
+                const endColor = endColorPicker.value;
+                drawSquares(numSquares, startColor, endColor);
+            });
+
+            downloadButton.addEventListener("click", downloadImage);
+        });
+    </script>
+</body>
+</html>
