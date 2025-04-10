@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Editor with Delaunay Triangulation</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        canvas {
+            max-width: 100%;
+        }
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/delaunator@5.0.0/delaunator.min.js"></script>
+</head>
+<body>
+    <div class="controls">
+        <input type="file" id="upload" accept="image/*" value="Choose File">
+        <input type="number" id="pointsInput" placeholder="Number of Points" min="100" value="2000">
+        <button id="triangulateBtn">Triangulate</button>
+        <button id="resetBtn">Reset</button>
+        <button id="downloadBtn">Download</button>
+    </div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const upload = document.getElementById('upload');
+        const pointsInput = document.getElementById('pointsInput');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const triangulateBtn = document.getElementById('triangulateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let img = new Image();
+        let originalImageData = null;
+        let points = [];
+        let delaunay;
+
+        upload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    img.onload = function () {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        triangulateBtn.disabled = false;
+                        resetBtn.disabled = false;
+                        downloadBtn.disabled = false;
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function generatePoints(imageData, numPoints) {
+            const points = [];
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+
+            for (let i = 0; i < numPoints; i++) {
+                let x = Math.floor(Math.random() * width);
+                let y = Math.floor(Math.random() * height);
+                let pixelIndex = (y * width + x) * 4;
+                let a = data[pixelIndex + 3];
+
+                if (a > 0)
+                    points.push([x, y]);
+            }
+            return points;
+        }
+
+        function drawTriangle(context, points, color) {
+            context.beginPath();
+            context.moveTo(points[0], points[1]);
+            context.lineTo(points[2], points[3]);
+            context.lineTo(points[4], points[5]);
+            context.closePath();
+            context.fillStyle = color;
+            context.fill();
+        }
+
+        function triangulateImage() {
+            if (!originalImageData) return;
+
+            const numPoints = parseInt(pointsInput.value) || 2000;
+            ctx.putImageData(originalImageData, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            points = generatePoints(imageData, numPoints);
+            delaunay = Delaunator.from(points);
+
+            for (let i = 0; i < delaunay.triangles.length; i += 3) {
+                const trianglePoints = [
+                    points[delaunay.triangles[i]],
+                    points[delaunay.triangles[i + 1]],
+                    points[delaunay.triangles[i + 2]]
+                ];
+
+                const avgColor = getTriangleAverageColor(ctx, trianglePoints);
+                drawTriangle(ctx, [
+                    trianglePoints[0][0], trianglePoints[0][1],
+                    trianglePoints[1][0], trianglePoints[1][1],
+                    trianglePoints[2][0], trianglePoints[2][1]
+                ], avgColor);
+            }
+        }
+
+        function getTriangleAverageColor(context, points) {
+            const [x1, y1] = points[0];
+            const [x2, y2] = points[1];
+            const [x3, y3] = points[2];
+
+            const minX = Math.min(x1, x2, x3);
+            const minY = Math.min(y1, y2, y3);
+            const maxX = Math.max(x1, x2, x3);
+            const maxY = Math.max(y1, y2, y3);
+
+            const triangleImageData = context.getImageData(minX, minY, maxX - minX, maxY - minY);
+            const data = triangleImageData.data;
+
+            let r = 0, g = 0, b = 0, count = 0;
+
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i + 3] > 0) {
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                    count++;
+                }
+            }
+            return `rgb(${Math.round(r / count)}, ${Math.round(g / count)}, ${Math.round(b / count)})`;
+        }
+
+        function resetImage() {
+            ctx.putImageData(originalImageData, 0, 0);
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'triangulated-image.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        triangulateBtn.addEventListener('click', triangulateImage);
+        resetBtn.addEventListener('click', resetImage);
+        downloadBtn.addEventListener('click', downloadImage);
+    </script>
+</body>
+</html>
