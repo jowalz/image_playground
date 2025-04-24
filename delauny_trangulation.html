@@ -1,9 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Editor with Delaunay Triangulation</title>
     <style>
         body {
             display: flex;
@@ -16,13 +14,11 @@
         }
         canvas {
             max-width: 100%;
+            height: auto;
         }
-        .controls {
-            margin-top: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 5px;
+        .form-container {
+            text-align: left;
+            margin-bottom: 20px;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/delaunator@5.0.0/delaunator.min.js"></script>
