@@ -9,6 +9,8 @@
             align-items: left;
             justify-content: left;
             text-align: left;
+            background-color: white;
+            color: black;
         }
         canvas {
             max-width: 100%;
@@ -57,7 +59,14 @@
                 const r = Math.floor(Math.random() * (endRGB.r - startRGB.r + 1) + startRGB.r);
                 const g = Math.floor(Math.random() * (endRGB.g - startRGB.g + 1) + startRGB.g);
                 const b = Math.floor(Math.random() * (endRGB.b - startRGB.b + 1) + startRGB.b);
-                return `rgb(${r}, ${g}, ${b})`;
+            
+                // Enhance brightness or saturation
+                const enhanceFactor = 1.2; // Adjust this value to increase brightness (e.g., 1.1, 1.5)
+                const enhancedR = Math.min(255, Math.floor(r * enhanceFactor));
+                const enhancedG = Math.min(255, Math.floor(g * enhanceFactor));
+                const enhancedB = Math.min(255, Math.floor(b * enhanceFactor));
+            
+                return `rgb(${enhancedR}, ${enhancedG}, ${enhancedB})`;
             }
 
             function hexToRgb(hex) {
