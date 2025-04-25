@@ -67,6 +67,35 @@
             }
         });
 
+    const preloadDemoBtn = document.getElementById('preloadDemoBtn');
+    const demoImageUrl = 'https://jowalz.com/wp-content/uploads/2025/04/IMG_8813-Bearbeitet.jpg';
+
+
+    // Automatically preload and triangulate the demo image on page load
+    window.addEventListener('load', () => {
+        img.onload = function () {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+            // Enable buttons
+            triangulateBtn.disabled = false;
+            resetBtn.disabled = false;
+            downloadBtn.disabled = false;
+
+            // Automatically triangulate the image
+            triangulateImage();
+        };
+
+        img.onerror = function () {
+            alert('Failed to load the demo image. Please check the URL.');
+        };
+
+        // Set the demo image URL
+        img.src = demoImageUrl;
+    });
+
         function generatePoints(imageData, numPoints) {
             const points = [];
             const data = imageData.data;
