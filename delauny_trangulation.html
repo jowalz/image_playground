@@ -21,12 +21,14 @@
             margin-bottom: 20px;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/delaunator@5.0.0/delaunator.min.js"></script>
+    <script src="https://jowalz.com/wp-content/uploads/2025/delaugny.js">
+    //* ... original code from src="https://cdn.jsdelivr.net/npm/delaunator@5.0.0/delaunator.min.js"
+</script>
 </head>
 <body>
     <div class="form-container ">
         <input type="file" id="upload" accept="image/*" value="Choose File">
-        <input type="number" id="pointsInput" placeholder="Number of Points" min="100" value="2000">
+        <input type="number" id="pointsInput" placeholder="Number of Points" min="100" value="1000">
         <button id="triangulateBtn">Triangulate</button>
         <button id="resetBtn">Reset</button>
         <button id="downloadBtn">Download</button>
@@ -127,7 +129,7 @@
         function triangulateImage() {
             if (!originalImageData) return;
 
-            const numPoints = parseInt(pointsInput.value) || 2000;
+            const numPoints = parseInt(pointsInput.value) || 1000;
             ctx.putImageData(originalImageData, 0, 0);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             points = generatePoints(imageData, numPoints);
