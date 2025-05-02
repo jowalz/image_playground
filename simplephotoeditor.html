@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Photo Editor</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #000;
+            max-width: 100%;
+            height: auto;
+        }
+        .controls {
+            margin-top: 10px;
+        }
+        #upload {
+            margin-bottom: 10px; /* Add space below the input button */
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="upload" accept="image/*"><br> 
+    <canvas id="canvas"></canvas>
+    <div class="controls">
+        <button onclick="applyFilter('neutral')">Neutral B/W</button>
+        <button onclick="applyFilter('highContrast')">High Contrast</button>
+        <button onclick="applyFilter('softContrast')">Soft Contrast</button>
+        <button onclick="applyFilter('sepia')">Sepia Tone</button>
+        <button onclick="applyFilter('deepBlacks')">Deep Blacks</button>
+        <button onclick="resetImage()">Reset</button>
+        <button onclick="downloadImage()">Download</button>
+    </div>
+    
+    <script>
+        const upload = document.getElementById('upload');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let img = new Image();
+        let originalImageData = null;
+        let originalFileSize = 0; // Store original file size
+
+        upload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                originalFileSize = file.size; // Store the file size
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    img.onload = function () {
+                        canvas.width = img.width / 2;
+                        canvas.height = img.height / 2;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        function applyFilter(filterType) {
+            ctx.putImageData(originalImageData, 0, 0);
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i + 1], b = data[i + 2];
+                let avg = (r + g + b) / 3;
+                if (filterType === 'neutral') {
+                    data[i] = data[i + 1] = data[i + 2] = avg;
+                } else if (filterType === 'highContrast') {
+                    let contrast = avg > 128 ? 255 : 0;
+                    data[i] = data[i + 1] = data[i + 2] = contrast;
+                } else if (filterType === 'softContrast') {
+                    data[i] = data[i + 1] = data[i + 2] = avg * 1.2 > 255 ? 255 : avg * 1.2;
+                } else if (filterType === 'sepia') {
+                    data[i] = avg * 1.2 > 255 ? 255 : avg * 1.2;
+                    data[i + 1] = avg * 1.1 > 255 ? 255 : avg * 1.1;
+                    data[i + 2] = avg * 0.9;
+                } else if (filterType === 'deepBlacks') {
+                    data[i] = data[i + 1] = data[i + 2] = avg * 0.8;
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+        
+        function resetImage() {
+            ctx.putImageData(originalImageData, 0, 0);
+        }
+        
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'edited-image.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
+</body>
+</html>
